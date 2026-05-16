@@ -1,155 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Advanced Calorie Tracker</title>
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
-}
-
-body{
-    background:#0f172a;
-    color:white;
-    padding:20px;
-}
-
-.container{
-    max-width:1400px;
-    margin:auto;
-}
-
-h1,h2{
-    margin-bottom:15px;
-}
-
-.section{
-    background:#1e293b;
-    padding:20px;
-    border-radius:16px;
-    margin-bottom:20px;
-}
-
-input,select,button{
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    font-size:1rem;
-}
-
-input,select{
-    background:#334155;
-    color:white;
-}
-
-button{
-    background:#38bdf8;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-button:hover{
-    opacity:0.9;
-}
-
-.grid{
-    display:grid;
-    gap:10px;
-}
-
-.food-inputs{
-    grid-template-columns:2fr 1fr 1fr 1fr auto;
-}
-
-.food-db{
-    grid-template-columns:2fr 1fr 1fr 1fr auto;
-}
-
-.goal-grid{
-    grid-template-columns:repeat(3,1fr);
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
-
-th,td{
-    border:1px solid #334155;
-    padding:12px;
-    text-align:center;
-}
-
-th{
-    background:#334155;
-}
-
-.green{
-    background:#166534;
-}
-
-.yellow{
-    background:#854d0e;
-}
-
-.red{
-    background:#991b1b;
-}
-
-.meal-box{
-    background:#334155;
-    padding:12px;
-    border-radius:10px;
-    margin-top:10px;
-}
-
-.food-row{
-    display:flex;
-    justify-content:space-between;
-    margin-top:6px;
-    font-size:0.9rem;
-}
-
-.search-results{
-    background:#334155;
-    margin-top:5px;
-    border-radius:10px;
-    max-height:150px;
-    overflow-y:auto;
-}
-
-.search-item{
-    padding:10px;
-    cursor:pointer;
-}
-
-.search-item:hover{
-    background:#475569;
-}
-
-.weight-list{
-    margin-top:10px;
-}
-
-@media(max-width:900px){
-
-    .food-inputs,
-    .food-db,
-    .goal-grid{
-        grid-template-columns:1fr;
-    }
-
-}
-
-</style>
-</head>
+<!-- REPLACE ONLY THE <body> SECTION WITH THIS UPDATED VERSION -->
 
 <body>
 
@@ -157,40 +6,7 @@ th{
 
 <h1>Calorie Tracker</h1>
 
-<div class="section">
-
-<h2>Daily Goals</h2>
-
-<div class="grid goal-grid">
-
-<input type="number" id="calorieGoal" placeholder="Calories Goal"/>
-<input type="number" id="proteinGoal" placeholder="Protein Goal"/>
-<input type="number" id="fiberGoal" placeholder="Fiber Goal"/>
-
-</div>
-
-<br>
-
-<button onclick="saveGoals()">Save Goals</button>
-
-</div>
-
-<div class="section">
-
-<h2>Add Food To Database</h2>
-
-<div class="grid food-db">
-
-<input type="text" id="dbFoodName" placeholder="Food Name"/>
-<input type="number" id="dbCalories" placeholder="Calories /100g"/>
-<input type="number" id="dbProtein" placeholder="Protein /100g"/>
-<input type="number" id="dbFiber" placeholder="Fiber /100g"/>
-
-<button onclick="addFoodDatabase()">Add</button>
-
-</div>
-
-</div>
+<!-- TRACK FOOD -->
 
 <div class="section">
 
@@ -220,6 +36,27 @@ th{
 
 </div>
 
+<!-- FOOD DATABASE -->
+
+<div class="section">
+
+<h2>Add Food To Database</h2>
+
+<div class="grid food-db">
+
+<input type="text" id="dbFoodName" placeholder="Food Name"/>
+<input type="number" id="dbCalories" placeholder="Calories /100g"/>
+<input type="number" id="dbProtein" placeholder="Protein /100g"/>
+<input type="number" id="dbFiber" placeholder="Fiber /100g"/>
+
+<button onclick="addFoodDatabase()">Add</button>
+
+</div>
+
+</div>
+
+<!-- WEIGHT -->
+
 <div class="section">
 
 <h2>Weight Tracking</h2>
@@ -237,6 +74,8 @@ th{
 
 </div>
 
+<!-- WEEKLY OVERVIEW -->
+
 <div class="section">
 
 <h2>Weekly Overview</h2>
@@ -245,6 +84,36 @@ th{
 <button onclick="nextWeek()">Next Week</button>
 
 <div id="weeklyTable"></div>
+
+</div>
+
+<!-- DAILY GOALS MOVED TO BOTTOM -->
+
+<div class="section">
+
+<h2>Daily Goals</h2>
+
+<div class="grid goal-grid">
+
+<input type="number" id="calorieGoal" placeholder="Calories Goal"/>
+<input type="number" id="proteinGoal" placeholder="Protein Goal"/>
+<input type="number" id="fiberGoal" placeholder="Fiber Goal"/>
+
+</div>
+
+<br>
+
+<button onclick="saveGoals()">Save Goals</button>
+
+</div>
+
+<!-- DATABASE MANAGEMENT -->
+
+<div class="section">
+
+<h2>Food Database</h2>
+
+<div id="databaseList"></div>
 
 </div>
 
@@ -272,6 +141,7 @@ document.getElementById("weightDate").valueAsDate = new Date();
 loadGoals();
 renderWeek();
 renderWeights();
+renderDatabase();
 
 function saveData(){
 
@@ -304,6 +174,7 @@ function loadGoals(){
 function addFoodDatabase(){
 
     const food = {
+        id:Date.now(),
         name:document.getElementById("dbFoodName").value,
         calories:Number(document.getElementById("dbCalories").value),
         protein:Number(document.getElementById("dbProtein").value),
@@ -314,7 +185,52 @@ function addFoodDatabase(){
 
     saveData();
 
+    renderDatabase();
+
     alert("Food Added");
+
+}
+
+function deleteFood(id){
+
+    foodDatabase = foodDatabase.filter(food => food.id !== id);
+
+    saveData();
+
+    renderDatabase();
+
+}
+
+function renderDatabase(){
+
+    const div = document.getElementById("databaseList");
+
+    div.innerHTML = "";
+
+    foodDatabase.forEach(food=>{
+
+        div.innerHTML += `
+        <div class="meal-box">
+
+        <strong>${food.name}</strong>
+
+        <div class="food-row">
+        <span>${food.calories} kcal</span>
+        <span>${food.protein}g protein</span>
+        <span>${food.fiber}g fiber</span>
+        </div>
+
+        <br>
+
+        <button onclick="deleteFood(${food.id})"
+        style="background:#ef4444;color:white;">
+        Delete
+        </button>
+
+        </div>
+        `;
+
+    });
 
 }
 
@@ -366,6 +282,7 @@ function addMeal(){
     const multiplier = grams / 100;
 
     const meal = {
+        id:Date.now(),
         date:document.getElementById("foodDate").value,
         meal:document.getElementById("mealType").value,
         name:selectedFood.name,
@@ -376,6 +293,16 @@ function addMeal(){
     };
 
     meals.push(meal);
+
+    saveData();
+
+    renderWeek();
+
+}
+
+function deleteMeal(id){
+
+    meals = meals.filter(meal => meal.id !== id);
 
     saveData();
 
@@ -469,6 +396,12 @@ function renderWeek(){
                 <span>${food.name} (${food.grams}g)</span>
                 <span>${food.calories} kcal</span>
                 </div>
+
+                <button
+                onclick="deleteMeal(${food.id})"
+                style="margin-top:6px;background:#ef4444;color:white;">
+                Delete
+                </button>
                 `;
 
             });
@@ -492,6 +425,73 @@ function renderWeek(){
         ${protein}g
         </td>
 
+        <td class="${getStatus(fiber,goals.fiber,"fiber")}">
+        ${fiber}g
+        </td>
+
+        </tr>
+        `;
+
+    }
+
+    html += "</table>";
+
+    weeklyDiv.innerHTML = html;
+
+}
+
+function previousWeek(){
+
+    currentWeekOffset--;
+
+    renderWeek();
+
+}
+
+function nextWeek(){
+
+    currentWeekOffset++;
+
+    renderWeek();
+
+}
+
+function addWeight(){
+
+    const entry = {
+        date:document.getElementById("weightDate").value,
+        weight:Number(document.getElementById("weightValue").value)
+    };
+
+    weights.push(entry);
+
+    saveData();
+
+    renderWeights();
+
+}
+
+function renderWeights(){
+
+    const div = document.getElementById("weightList");
+
+    div.innerHTML = "";
+
+    weights.forEach(w=>{
+
+        div.innerHTML += `
+        <div class="meal-box">
+        ${w.date} - ${w.weight}kg
+        </div>
+        `;
+
+    });
+
+}
+
+</script>
+
+</body>
         <td class="${getStatus(fiber,goals.fiber,"fiber")}">
         ${fiber}g
         </td>
