@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Advanced Calorie Tracker</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+}
+
+h1,h2{
+    margin-bottom:15px;
+}
+
+.section{
+    background:#1e293b;
+    padding:20px;
+    border-radius:16px;
+    margin-bottom:20px;
+}
+
+input,select,button{
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    font-size:1rem;
+}
+
+input,select{
+    background:#334155;
+    color:white;
+}
+
+button{
+    background:#38bdf8;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+.grid{
+    display:grid;
+    gap:10px;
+}
+
+.food-inputs{
+    grid-template-columns:2fr 1fr 1fr 1fr auto;
+}
+
+.food-db{
+    grid-template-columns:2fr 1fr 1fr 1fr auto;
+}
+
+.goal-grid{
+    grid-template-columns:repeat(3,1fr);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th,td{
+    border:1px solid #334155;
+    padding:12px;
+    text-align:center;
+}
+
+th{
+    background:#334155;
+}
+
+.green{
+    background:#166534;
+}
+
+.yellow{
+    background:#854d0e;
+}
+
+.red{
+    background:#991b1b;
+}
+
+.meal-box{
+    background:#334155;
+    padding:12px;
+    border-radius:10px;
+    margin-top:10px;
+}
+
+.food-row{
+    display:flex;
+    justify-content:space-between;
+    margin-top:6px;
+    font-size:0.9rem;
+}
+
+.search-results{
+    background:#334155;
+    margin-top:5px;
+    border-radius:10px;
+    max-height:150px;
+    overflow-y:auto;
+}
+
+.search-item{
+    padding:10px;
+    cursor:pointer;
+}
+
+.search-item:hover{
+    background:#475569;
+}
+
+.weight-list{
+    margin-top:10px;
+}
+
+@media(max-width:900px){
+
+    .food-inputs,
+    .food-db,
+    .goal-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Calorie Tracker</h1>
+
+<div class="section">
+
+<h2>Daily Goals</h2>
+
+<div class="grid goal-grid">
+
+<input type="number" id="calorieGoal" placeholder="Calories Goal"/>
+<input type="number" id="proteinGoal" placeholder="Protein Goal"/>
+<input type="number" id="fiberGoal" placeholder="Fiber Goal"/>
+
+</div>
+
+<br>
+
+<button onclick="saveGoals()">Save Goals</button>
+
+</div>
+
+<div class="section">
+
+<h2>Add Food To Database</h2>
+
+<div class="grid food-db">
+
+<input type="text" id="dbFoodName" placeholder="Food Name"/>
+<input type="number" id="dbCalories" placeholder="Calories /100g"/>
+<input type="number" id="dbProtein" placeholder="Protein /100g"/>
+<input type="number" id="dbFiber" placeholder="Fiber /100g"/>
+
+<button onclick="addFoodDatabase()">Add</button>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<h2>Track Food</h2>
+
+<div class="grid food-inputs">
+
+<div>
+<input type="text" id="foodSearch" placeholder="Search Food"/>
+<div class="search-results" id="searchResults"></div>
+</div>
+
+<input type="number" id="foodGrams" placeholder="Grams"/>
+
+<select id="mealType">
+<option>Breakfast</option>
+<option>Snack</option>
+<option>Lunch</option>
+<option>Dinner</option>
+</select>
+
+<input type="date" id="foodDate"/>
+
+<button onclick="addMeal()">Add</button>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<h2>Weight Tracking</h2>
+
+<div class="grid" style="grid-template-columns:1fr 1fr auto;">
+
+<input type="date" id="weightDate"/>
+<input type="number" id="weightValue" placeholder="Weight (kg)"/>
+
+<button onclick="addWeight()">Add</button>
+
+</div>
+
+<div class="weight-list" id="weightList"></div>
+
+</div>
+
+<div class="section">
+
+<h2>Weekly Overview</h2>
+
+<button onclick="previousWeek()">Previous Week</button>
+<button onclick="nextWeek()">Next Week</button>
+
+<div id="weeklyTable"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let foodDatabase = JSON.parse(localStorage.getItem("foodDatabase")) || [];
+let meals = JSON.parse(localStorage.getItem("meals")) || [];
+let goals = JSON.parse(localStorage.getItem("goals")) || {
+    calories:2500,
+    protein:150,
+    fiber:30
+};
+
+let weights = JSON.parse(localStorage.getItem("weights")) || [];
+
+let selectedFood = null;
+
+let currentWeekOffset = 0;
+
+document.getElementById("foodDate").valueAsDate = new Date();
+document.getElementById("weightDate").valueAsDate = new Date();
+
+loadGoals();
+renderWeek();
+renderWeights();
+
+function saveData(){
+
+    localStorage.setItem("foodDatabase",JSON.stringify(foodDatabase));
+    localStorage.setItem("meals",JSON.stringify(meals));
+    localStorage.setItem("goals",JSON.stringify(goals));
+    localStorage.setItem("weights",JSON.stringify(weights));
+
+}
+
+function saveGoals(){
+
+    goals.calories = Number(document.getElementById("calorieGoal").value);
+    goals.protein = Number(document.getElementById("proteinGoal").value);
+    goals.fiber = Number(document.getElementById("fiberGoal").value);
+
+    saveData();
+    renderWeek();
+
+}
+
+function loadGoals(){
+
+    document.getElementById("calorieGoal").value = goals.calories;
+    document.getElementById("proteinGoal").value = goals.protein;
+    document.getElementById("fiberGoal").value = goals.fiber;
+
+}
+
+function addFoodDatabase(){
+
+    const food = {
+        name:document.getElementById("dbFoodName").value,
+        calories:Number(document.getElementById("dbCalories").value),
+        protein:Number(document.getElementById("dbProtein").value),
+        fiber:Number(document.getElementById("dbFiber").value)
+    };
+
+    foodDatabase.push(food);
+
+    saveData();
+
+    alert("Food Added");
+
+}
+
+document.getElementById("foodSearch").addEventListener("input",function(){
+
+    const value = this.value.toLowerCase();
+
+    const results = foodDatabase.filter(f =>
+        f.name.toLowerCase().includes(value)
+    );
+
+    const resultsDiv = document.getElementById("searchResults");
+
+    resultsDiv.innerHTML = "";
+
+    results.forEach(food=>{
+
+        const div = document.createElement("div");
+
+        div.className = "search-item";
+
+        div.innerText = food.name;
+
+        div.onclick = ()=>{
+
+            selectedFood = food;
+
+            document.getElementById("foodSearch").value = food.name;
+
+            resultsDiv.innerHTML = "";
+
+        };
+
+        resultsDiv.appendChild(div);
+
+    });
+
+});
+
+function addMeal(){
+
+    if(!selectedFood){
+        alert("Select a food first");
+        return;
+    }
+
+    const grams = Number(document.getElementById("foodGrams").value);
+
+    const multiplier = grams / 100;
+
+    const meal = {
+        date:document.getElementById("foodDate").value,
+        meal:document.getElementById("mealType").value,
+        name:selectedFood.name,
+        grams:grams,
+        calories:Math.round(selectedFood.calories * multiplier),
+        protein:Math.round(selectedFood.protein * multiplier),
+        fiber:Math.round(selectedFood.fiber * multiplier)
+    };
+
+    meals.push(meal);
+
+    saveData();
+
+    renderWeek();
+
+}
+
+function getStatus(value,goal,type){
+
+    if(type === "calories"){
+
+        if(value >= goal - 20 && value <= goal + 20){
+            return "green";
+        }
+
+        if(Math.abs(value - goal) <= 100){
+            return "yellow";
+        }
+
+        return "red";
+
+    }
+
+    const percentage = value / goal;
+
+    if(percentage >= 1){
+        return "green";
+    }
+
+    if(percentage >= 0.8){
+        return "yellow";
+    }
+
+    return "red";
+
+}
+
+function renderWeek(){
+
+    const weeklyDiv = document.getElementById("weeklyTable");
+
+    let html = `
+    <table>
+    <tr>
+    <th>Day</th>
+    <th>Meals</th>
+    <th>Calories</th>
+    <th>Protein</th>
+    <th>Fiber</th>
+    </tr>
+    `;
+
+    const today = new Date();
+
+    const currentDay = today.getDay();
+
+    const monday = new Date(today);
+
+    monday.setDate(today.getDate() - currentDay + 1 + currentWeekOffset * 7);
+
+    for(let i=0;i<7;i++){
+
+        const date = new Date(monday);
+
+        date.setDate(monday.getDate()+i);
+
+        const dateString = date.toISOString().split("T")[0];
+
+        const dayMeals = meals.filter(m => m.date === dateString);
+
+        let calories = 0;
+        let protein = 0;
+        let fiber = 0;
+
+        let mealHTML = "";
+
+        ["Breakfast","Snack","Lunch","Dinner"].forEach(type=>{
+
+            const mealTypeFoods = dayMeals.filter(m => m.meal === type);
+
+            mealHTML += `<div class="meal-box"><strong>${type}</strong>`;
+
+            mealTypeFoods.forEach(food=>{
+
+                calories += food.calories;
+                protein += food.protein;
+                fiber += food.fiber;
+
+                mealHTML += `
+                <div class="food-row">
+                <span>${food.name} (${food.grams}g)</span>
+                <span>${food.calories} kcal</span>
+                </div>
+                `;
+
+            });
+
+            mealHTML += `</div>`;
+
+        });
+
+        html += `
+        <tr>
+
+        <td>${dateString}</td>
+
+        <td>${mealHTML}</td>
+
+        <td class="${getStatus(calories,goals.calories,"calories")}">
+        ${calories}
+        </td>
+
+        <td class="${getStatus(protein,goals.protein,"protein")}">
+        ${protein}g
+        </td>
+
+        <td class="${getStatus(fiber,goals.fiber,"fiber")}">
+        ${fiber}g
+        </td>
+
+        </tr>
+        `;
+
+    }
+
+    html += "</table>";
+
+    weeklyDiv.innerHTML = html;
+
+}
+
+function previousWeek(){
+
+    currentWeekOffset--;
+
+    renderWeek();
+
+}
+
+function nextWeek(){
+
+    currentWeekOffset++;
+
+    renderWeek();
+
+}
+
+function addWeight(){
+
+    const entry = {
+        date:document.getElementById("weightDate").value,
+        weight:Number(document.getElementById("weightValue").value)
+    };
+
+    weights.push(entry);
+
+    saveData();
+
+    renderWeights();
+
+}
+
+function renderWeights(){
+
+    const div = document.getElementById("weightList");
+
+    div.innerHTML = "";
+
+    weights.forEach(w=>{
+
+        div.innerHTML += `
+        <div class="meal-box">
+        ${w.date} - ${w.weight}kg
+        </div>
+        `;
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>
