@@ -1,4 +1,226 @@
-<!-- REPLACE ONLY THE <body> SECTION WITH THIS UPDATED VERSION -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calorie Tracker</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    padding:15px;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+}
+
+h1,h2{
+    margin-bottom:15px;
+    line-height:1.2;
+}
+
+.section{
+    background:#1e293b;
+    padding:18px;
+    border-radius:16px;
+    margin-bottom:20px;
+    overflow:hidden;
+}
+
+input,select,button{
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    font-size:1rem;
+    width:100%;
+}
+
+input,select{
+    background:#334155;
+    color:white;
+}
+
+button{
+    background:#38bdf8;
+    cursor:pointer;
+    font-weight:bold;
+    color:#0f172a;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+.grid{
+    display:grid;
+    gap:10px;
+}
+
+.food-inputs{
+    grid-template-columns:2fr 1fr 1fr 1fr auto;
+}
+
+.food-db{
+    grid-template-columns:2fr 1fr 1fr 1fr auto;
+}
+
+.goal-grid{
+    grid-template-columns:repeat(3,1fr);
+}
+
+.table-wrapper{
+    overflow-x:auto;
+    width:100%;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    min-width:900px;
+}
+
+th,td{
+    border:1px solid #334155;
+    padding:12px;
+    text-align:center;
+    vertical-align:top;
+}
+
+th{
+    background:#334155;
+}
+
+.green{
+    background:#166534;
+}
+
+.yellow{
+    background:#854d0e;
+}
+
+.red{
+    background:#991b1b;
+}
+
+.meal-box{
+    background:#334155;
+    padding:12px;
+    border-radius:10px;
+    margin-top:10px;
+    text-align:left;
+}
+
+.food-row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:6px;
+    font-size:0.9rem;
+    flex-wrap:wrap;
+}
+
+.search-results{
+    background:#334155;
+    margin-top:5px;
+    border-radius:10px;
+    max-height:150px;
+    overflow-y:auto;
+}
+
+.search-item{
+    padding:10px;
+    cursor:pointer;
+}
+
+.search-item:hover{
+    background:#475569;
+}
+
+.weight-list{
+    margin-top:10px;
+}
+
+.delete-btn{
+    background:#ef4444;
+    color:white;
+    margin-top:8px;
+    width:100%;
+}
+
+.week-buttons{
+    display:flex;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.week-buttons button{
+    flex:1;
+}
+
+@media(max-width:900px){
+
+    body{
+        padding:10px;
+    }
+
+    .section{
+        padding:14px;
+    }
+
+    .food-inputs,
+    .food-db,
+    .goal-grid{
+        grid-template-columns:1fr;
+    }
+
+    input,
+    select,
+    button{
+        font-size:16px;
+    }
+
+    h1{
+        font-size:1.8rem;
+    }
+
+    h2{
+        font-size:1.2rem;
+    }
+
+    .meal-box{
+        padding:10px;
+    }
+
+    th,td{
+        padding:10px;
+        font-size:0.9rem;
+    }
+
+    .food-row{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .week-buttons{
+        flex-direction:column;
+    }
+
+}
+
+</style>
+</head>
 
 <body>
 
@@ -55,7 +277,17 @@
 
 </div>
 
-<!-- WEIGHT -->
+<!-- DATABASE LIST -->
+
+<div class="section">
+
+<h2>Food Database</h2>
+
+<div id="databaseList"></div>
+
+</div>
+
+<!-- WEIGHT TRACKING -->
 
 <div class="section">
 
@@ -80,14 +312,18 @@
 
 <h2>Weekly Overview</h2>
 
+<div class="week-buttons">
 <button onclick="previousWeek()">Previous Week</button>
 <button onclick="nextWeek()">Next Week</button>
+</div>
 
+<div class="table-wrapper">
 <div id="weeklyTable"></div>
+</div>
 
 </div>
 
-<!-- DAILY GOALS MOVED TO BOTTOM -->
+<!-- DAILY GOALS -->
 
 <div class="section">
 
@@ -107,22 +343,14 @@
 
 </div>
 
-<!-- DATABASE MANAGEMENT -->
-
-<div class="section">
-
-<h2>Food Database</h2>
-
-<div id="databaseList"></div>
-
-</div>
-
 </div>
 
 <script>
 
 let foodDatabase = JSON.parse(localStorage.getItem("foodDatabase")) || [];
+
 let meals = JSON.parse(localStorage.getItem("meals")) || [];
+
 let goals = JSON.parse(localStorage.getItem("goals")) || {
     calories:2500,
     protein:150,
@@ -136,18 +364,25 @@ let selectedFood = null;
 let currentWeekOffset = 0;
 
 document.getElementById("foodDate").valueAsDate = new Date();
+
 document.getElementById("weightDate").valueAsDate = new Date();
 
 loadGoals();
+
 renderWeek();
+
 renderWeights();
+
 renderDatabase();
 
 function saveData(){
 
     localStorage.setItem("foodDatabase",JSON.stringify(foodDatabase));
+
     localStorage.setItem("meals",JSON.stringify(meals));
+
     localStorage.setItem("goals",JSON.stringify(goals));
+
     localStorage.setItem("weights",JSON.stringify(weights));
 
 }
@@ -155,10 +390,13 @@ function saveData(){
 function saveGoals(){
 
     goals.calories = Number(document.getElementById("calorieGoal").value);
+
     goals.protein = Number(document.getElementById("proteinGoal").value);
+
     goals.fiber = Number(document.getElementById("fiberGoal").value);
 
     saveData();
+
     renderWeek();
 
 }
@@ -166,7 +404,9 @@ function saveGoals(){
 function loadGoals(){
 
     document.getElementById("calorieGoal").value = goals.calories;
+
     document.getElementById("proteinGoal").value = goals.protein;
+
     document.getElementById("fiberGoal").value = goals.fiber;
 
 }
@@ -186,8 +426,6 @@ function addFoodDatabase(){
     saveData();
 
     renderDatabase();
-
-    alert("Food Added");
 
 }
 
@@ -220,10 +458,7 @@ function renderDatabase(){
         <span>${food.fiber}g fiber</span>
         </div>
 
-        <br>
-
-        <button onclick="deleteFood(${food.id})"
-        style="background:#ef4444;color:white;">
+        <button onclick="deleteFood(${food.id})" class="delete-btn">
         Delete
         </button>
 
@@ -238,8 +473,8 @@ document.getElementById("foodSearch").addEventListener("input",function(){
 
     const value = this.value.toLowerCase();
 
-    const results = foodDatabase.filter(f =>
-        f.name.toLowerCase().includes(value)
+    const results = foodDatabase.filter(food =>
+        food.name.toLowerCase().includes(value)
     );
 
     const resultsDiv = document.getElementById("searchResults");
@@ -371,7 +606,7 @@ function renderWeek(){
 
         const dateString = date.toISOString().split("T")[0];
 
-        const dayMeals = meals.filter(m => m.date === dateString);
+        const dayMeals = meals.filter(meal => meal.date === dateString);
 
         let calories = 0;
         let protein = 0;
@@ -381,7 +616,7 @@ function renderWeek(){
 
         ["Breakfast","Snack","Lunch","Dinner"].forEach(type=>{
 
-            const mealTypeFoods = dayMeals.filter(m => m.meal === type);
+            const mealTypeFoods = dayMeals.filter(meal => meal.meal === type);
 
             mealHTML += `<div class="meal-box"><strong>${type}</strong>`;
 
@@ -397,9 +632,7 @@ function renderWeek(){
                 <span>${food.calories} kcal</span>
                 </div>
 
-                <button
-                onclick="deleteMeal(${food.id})"
-                style="margin-top:6px;background:#ef4444;color:white;">
+                <button onclick="deleteMeal(${food.id})" class="delete-btn">
                 Delete
                 </button>
                 `;
@@ -477,78 +710,11 @@ function renderWeights(){
 
     div.innerHTML = "";
 
-    weights.forEach(w=>{
+    weights.forEach(weight=>{
 
         div.innerHTML += `
         <div class="meal-box">
-        ${w.date} - ${w.weight}kg
-        </div>
-        `;
-
-    });
-
-}
-
-</script>
-
-</body>
-        <td class="${getStatus(fiber,goals.fiber,"fiber")}">
-        ${fiber}g
-        </td>
-
-        </tr>
-        `;
-
-    }
-
-    html += "</table>";
-
-    weeklyDiv.innerHTML = html;
-
-}
-
-function previousWeek(){
-
-    currentWeekOffset--;
-
-    renderWeek();
-
-}
-
-function nextWeek(){
-
-    currentWeekOffset++;
-
-    renderWeek();
-
-}
-
-function addWeight(){
-
-    const entry = {
-        date:document.getElementById("weightDate").value,
-        weight:Number(document.getElementById("weightValue").value)
-    };
-
-    weights.push(entry);
-
-    saveData();
-
-    renderWeights();
-
-}
-
-function renderWeights(){
-
-    const div = document.getElementById("weightList");
-
-    div.innerHTML = "";
-
-    weights.forEach(w=>{
-
-        div.innerHTML += `
-        <div class="meal-box">
-        ${w.date} - ${w.weight}kg
+        ${weight.date} - ${weight.weight}kg
         </div>
         `;
 
